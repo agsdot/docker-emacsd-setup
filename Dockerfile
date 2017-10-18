@@ -1,27 +1,25 @@
-ARG VERSION=edge
-FROM alpine:$VERSION
+ARG VERSION=latest
+FROM ubuntu:$VERSION
 
 MAINTAINER JAremko <w3techplaygound@gmail.com>
 
 # Fix "Couldn't register with accessibility bus" error message
 ENV NO_AT_BRIDGE=1
 
-COPY asEnvUser /usr/local/sbin/
+ENV DEBIAN_FRONTEND noninteractive
 
-RUN echo "http://nl.alpinelinux.org/alpine/edge/main" \
-    >> /etc/apk/repositories \
-    && echo "http://nl.alpinelinux.org/alpine/edge/testing" \
-    >> /etc/apk/repositories \
-    && echo "http://nl.alpinelinux.org/alpine/edge/community" \
-    >> /etc/apk/repositories \
 # basic stuff
-    && apk --update add bash \
-    build-base \
+RUN echo 'APT::Get::Assume-Yes "true";' >> /etc/apt/apt.conf \
+    && apt-get update && apt-get install \
+    bash \
+    build-essential \
     dbus-x11 \
     fontconfig \
     git \
     gzip \
-    mesa-gl \
+    language-pack-en-base \
+    libgl1-mesa-glx \
+    make \
     sudo \
     tar \
     unzip \
@@ -31,15 +29,26 @@ RUN echo "http://nl.alpinelinux.org/alpine/edge/main" \
     && make \
     && chmod 770 su-exec \
     && mv ./su-exec /usr/local/sbin/ \
-# Only for sudoers
-    && chown root /usr/local/sbin/asEnvUser \
-    && chmod 700  /usr/local/sbin/asEnvUser \
-# Emacs
-    && apk --update add emacs-x11 \
 # Cleanup
-    && apk del build-base \
-    && rm -rf /var/cache/* /tmp/* /var/log/* ~/.cache \
-    && mkdir -p /var/cache/apk
+    && apt-get purge build-essential \
+    && apt-get autoremove \
+    && rm -rf /tmp/* /var/lib/apt/lists/* /root/.cache/*
+
+COPY asEnvUser /usr/local/sbin/
+
+# Only for sudoers
+RUN chown root /usr/local/sbin/asEnvUser \
+    && chmod 700  /usr/local/sbin/asEnvUser
+
+# ^^^^^^^ Those layers are shared ^^^^^^^
+
+# Emacs
+RUN apt-get update && apt-get install software-properties-common \
+    && apt-add-repository ppa:kelleyk/emacs \
+    && apt-get update && apt-get install emacs25 \
+# Cleanup
+    && apt-get purge software-properties-common \
+    && rm -rf /tmp/* /var/lib/apt/lists/* /root/.cache/*
 
 ENV UNAME="emacser" \
     GNAME="emacs" \
@@ -50,7 +59,6 @@ ENV UNAME="emacser" \
     SHELL="/bin/bash"
 
 WORKDIR "${WORKSPACE}"
-
 
 RUN mkdir -p ${UHOME}
 COPY .emacs.d ${UHOME}/.emacs.d
