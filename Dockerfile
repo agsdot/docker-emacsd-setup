@@ -14,5 +14,5 @@ COPY .emacs.d ${UHOME}/.emacs.d
 # Create ${UNAME} user and install Emacs packages
 RUN asEnvUser emacs -nw -batch -u ${UNAME} -q -kill
 
-ENTRYPOINT ["asEnvUser"]
-CMD ["bash", "-c", "emacs; /bin/bash"]
+#ENTRYPOINT ["asEnvUser"]
+#CMD ["bash", "-c", "emacs; /bin/bash"]
