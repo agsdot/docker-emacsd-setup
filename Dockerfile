@@ -1,27 +1,31 @@
-ARG VERSION=latest
-FROM ubuntu:$VERSION
+ARG VERSION=edge
+FROM alpine:$VERSION
 
 MAINTAINER JAremko <w3techplaygound@gmail.com>
 
 # Fix "Couldn't register with accessibility bus" error message
 ENV NO_AT_BRIDGE=1
 
-ENV DEBIAN_FRONTEND noninteractive
+COPY asEnvUser /usr/local/sbin/
 
+RUN echo "http://nl.alpinelinux.org/alpine/edge/main" \
+    >> /etc/apk/repositories \
+    && echo "http://nl.alpinelinux.org/alpine/edge/testing" \
+    >> /etc/apk/repositories \
+    && echo "http://nl.alpinelinux.org/alpine/edge/community" \
+    >> /etc/apk/repositories \
 # basic stuff
-RUN echo 'APT::Get::Assume-Yes "true";' >> /etc/apt/apt.conf \
-    && apt-get update && apt-get install \
-    bash \
-    build-essential \
+    && apk --update add bash \
+    build-base \
     dbus-x11 \
     fontconfig \
     git \
     gzip \
-    language-pack-en-base \
-    libgl1-mesa-glx \
-    make \
+    mesa-gl \
     sudo \
     tar \
+    neovim \
+    the_silver_searcher \
     unzip \
 # su-exec
     && git clone https://github.com/ncopa/su-exec.git /tmp/su-exec \
@@ -29,26 +33,15 @@ RUN echo 'APT::Get::Assume-Yes "true";' >> /etc/apt/apt.conf \
     && make \
     && chmod 770 su-exec \
     && mv ./su-exec /usr/local/sbin/ \
-# Cleanup
-    && apt-get purge build-essential \
-    && apt-get autoremove \
-    && rm -rf /tmp/* /var/lib/apt/lists/* /root/.cache/*
-
-COPY asEnvUser /usr/local/sbin/
-
 # Only for sudoers
-RUN chown root /usr/local/sbin/asEnvUser \
-    && chmod 700  /usr/local/sbin/asEnvUser
-
-# ^^^^^^^ Those layers are shared ^^^^^^^
-
+    && chown root /usr/local/sbin/asEnvUser \
+    && chmod 700  /usr/local/sbin/asEnvUser \
 # Emacs
-RUN apt-get update && apt-get install software-properties-common \
-    && apt-add-repository ppa:kelleyk/emacs \
-    && apt-get update && apt-get install emacs25 \
+    && apk --update add emacs-nox \
 # Cleanup
-    && apt-get purge software-properties-common \
-    && rm -rf /tmp/* /var/lib/apt/lists/* /root/.cache/*
+    && apk del build-base \
+    && rm -rf /var/cache/* /tmp/* /var/log/* ~/.cache \
+    && mkdir -p /var/cache/apk
 
 ENV UNAME="emacser" \
     GNAME="emacs" \
@@ -59,12 +52,6 @@ ENV UNAME="emacser" \
     SHELL="/bin/bash"
 
 WORKDIR "${WORKSPACE}"
-
-RUN mkdir -p ${UHOME}
-COPY .emacs.d ${UHOME}/.emacs.d
-# Create ${UNAME} user and install Emacs packages
-RUN asEnvUser emacs -nw -batch -u ${UNAME} -q -kill
-
 
 ENTRYPOINT ["asEnvUser"]
 CMD ["bash", "-c", "emacs; /bin/bash"]
