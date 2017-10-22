@@ -25,7 +25,8 @@ RUN echo "http://nl.alpinelinux.org/alpine/edge/main" \
     sudo \
     tar \
     neovim \
-    the_silver_searcher \
+    #the_silver_searcher \
+    go \
     unzip \
 # su-exec
     && git clone https://github.com/ncopa/su-exec.git /tmp/su-exec \
@@ -37,11 +38,35 @@ RUN echo "http://nl.alpinelinux.org/alpine/edge/main" \
     && chown root /usr/local/sbin/asEnvUser \
     && chmod 700  /usr/local/sbin/asEnvUser \
 # Emacs
-    && apk --update add emacs-nox \
-# Cleanup
-    && apk del build-base \
-    && rm -rf /var/cache/* /tmp/* /var/log/* ~/.cache \
-    && mkdir -p /var/cache/apk
+#    && apk --update add emacs-nox \
+## Cleanup
+#    && apk del build-base \
+#    && rm -rf /var/cache/* /tmp/* /var/log/* ~/.cache \
+#    && mkdir -p /var/cache/apk 
+
+# Install fzf
+    && mkdir -p /home/emacs \
+    #&& mkdir -p /home/emacs/src \
+    #&& mkdir -p /home/emacs/bin \
+    #&& mkdir -p /home/emacs/pkg \
+    #&& git clone https://github.com/ncopa/su-exec.git /tmp/su-exec \
+    && git clone --depth 1 https://github.com/junegunn/fzf.git /tmp/.fzf \
+    && /tmp/.fzf/install --all \
+    && cp /root/.bashrc /home/emacs/.bashrc \
+    && cp /root/.fzf.bash /home/emacs/.fzf.bash \
+    && cp -r /tmp/.fzf /home/emacs/.fzf
+
+    #&& mkdir -p /home/emacs 
+    #&& git clone https://github.com/ncopa/su-exec.git /tmp/su-exec \
+    #&& cd /tmp/su-exec \
+    #&& make \
+    #&& chmod 770 su-exec \
+    #&& mv ./su-exec /usr/local/sbin/ \
+
+    #&& git clone --depth 1 https://github.com/junegunn/fzf.git /home/emacs/.fzf \
+    #&& cd /home/emacs/.fzf \
+    #&& /home/emacs/.fzf/install --all \
+    #&& cd /home/emacs
 
 ENV UNAME="emacser" \
     GNAME="emacs" \
@@ -54,4 +79,5 @@ ENV UNAME="emacser" \
 WORKDIR "${WORKSPACE}"
 
 ENTRYPOINT ["asEnvUser"]
-CMD ["bash", "-c", "emacs; /bin/bash"]
+#CMD ["bash", "-c", "emacs; /bin/bash", "nvim; /bin/bash"]
+CMD ["bash", "-c", "nvim; /bin/bash"]
