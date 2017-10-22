@@ -34,16 +34,10 @@ RUN echo "http://nl.alpinelinux.org/alpine/edge/main" \
     && make \
     && chmod 770 su-exec \
     && mv ./su-exec /usr/local/sbin/ \
+
 # Only for sudoers
     && chown root /usr/local/sbin/asEnvUser \
     && chmod 700  /usr/local/sbin/asEnvUser \
-# Emacs
-#    && apk --update add emacs-nox \
-## Cleanup
-#    && apk del build-base \
-#    && rm -rf /var/cache/* /tmp/* /var/log/* ~/.cache \
-#    && mkdir -p /var/cache/apk 
-
 # Install fzf
     && mkdir -p /home/emacs \
     #&& mkdir -p /home/emacs/src \
@@ -54,19 +48,13 @@ RUN echo "http://nl.alpinelinux.org/alpine/edge/main" \
     && /tmp/.fzf/install --all \
     && cp /root/.bashrc /home/emacs/.bashrc \
     && cp /root/.fzf.bash /home/emacs/.fzf.bash \
-    && cp -r /tmp/.fzf /home/emacs/.fzf
-
-    #&& mkdir -p /home/emacs 
-    #&& git clone https://github.com/ncopa/su-exec.git /tmp/su-exec \
-    #&& cd /tmp/su-exec \
-    #&& make \
-    #&& chmod 770 su-exec \
-    #&& mv ./su-exec /usr/local/sbin/ \
-
-    #&& git clone --depth 1 https://github.com/junegunn/fzf.git /home/emacs/.fzf \
-    #&& cd /home/emacs/.fzf \
-    #&& /home/emacs/.fzf/install --all \
-    #&& cd /home/emacs
+    && cp -r /tmp/.fzf /home/emacs/.fzf \
+# Emacs
+    && apk --update add emacs-nox \
+# Cleanup
+    && apk del build-base \
+    && rm -rf /var/cache/* /tmp/* /var/log/* ~/.cache \
+    && mkdir -p /var/cache/apk
 
 ENV UNAME="emacser" \
     GNAME="emacs" \
@@ -79,5 +67,4 @@ ENV UNAME="emacser" \
 WORKDIR "${WORKSPACE}"
 
 ENTRYPOINT ["asEnvUser"]
-#CMD ["bash", "-c", "emacs; /bin/bash", "nvim; /bin/bash"]
-CMD ["bash", "-c", "nvim; /bin/bash"]
+CMD ["bash", "-c", "emacs; /bin/bash", "nvim; /bin/bash"]
